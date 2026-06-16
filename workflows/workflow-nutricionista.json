@@ -1,0 +1,1587 @@
+{
+  "name": "Agente Nutricionista",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -272,
+        144
+      ],
+      "id": "00baf931-6685-4d67-9b53-fbec0b50e8af",
+      "name": "Telegram Trigger",
+      "webhookId": "59b848df-6141-4f53-9bd9-26273317d819",
+      "credentials": {
+        "telegramApi": {
+          "id": "GEIiceroyO0TPJr8",
+          "name": "Telegram account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "tableId": "Clientes",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "chat_id",
+              "keyValue": "={{ $json.message.chat.id }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        208,
+        144
+      ],
+      "id": "0208d3b5-a504-445b-841b-cc92d2390ed3",
+      "name": "Get a row",
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "dcW8Sw9EJwXxmgli",
+          "name": "Supabase account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "f027c803-be56-444b-9e28-338925fe4f41",
+              "leftValue": "={{ $json.chat_id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        384,
+        144
+      ],
+      "id": "2fe77db1-f655-4a43-8f92-80b0710744b3",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('Telegram Trigger').last().json.message.text }}",
+        "options": {
+          "systemMessage": "Você é o assistente de cadastro da Clínica de Nutrição. Dê boas-vindas ao cliente e colete as informações abaixo UMA POR VEZ, na ordem exata:\n\n## ETAPAS DE COLETA\nETAPA 1 — Nome completo\nETAPA 2 — Idade (número inteiro)\nETAPA 3 — Peso em kg (número decimal, ex: 86.0)\nETAPA 4 — Altura em metros (número decimal, ex: 1.63)\nETAPA 5 — Restrições alimentares. Explique as opções antes de perguntar:\n   • Glúten\n   • Lactose\n   • Amendoim\n   • Frutos do mar\n   • Nenhuma\n\n# PRIMEIRA MENSAGEM\nUse um tom caloroso e explique brevemente o processo. Exemplo:\n\n\"Olá! 😊 Seja muito bem-vindo(a) à Clínica de Nutrição!\n\nPara começar, vou precisar de algumas informações rápidas: seu nome, idade, peso, altura e suas restrições alimentares (se houver).\n\nVamos começar? Qual é o seu nome completo?\"\n\n# REGRAS OBRIGATÓRIAS:\n- Faça **UMA pergunta por vez**\n- Aguarde a resposta antes de fazer a próxima pergunta\n- **Nunca** invente, assuma ou estime valores que o usuário não informou\n- **Nunca** pule etapas\n- Se o usuário responder algo fora do escopo (ex: piadas, perguntas aleatórias), explique gentilmente que precisa da informação solicitada e repita a pergunta atual\n- Não repita o nome do usuário a cada mensagem\n- Se o usuário informar um valor claramente inválido (ex: idade negativa, peso 0), peça para ele confirmar ou corrigir\n\n# REGRAS DO \"STATUS\":\n- status: false enquanto qualquer uma das 5 etapas não estiver completa\n- status: true **SOMENTE** quando as 5 etapas estiverem completas\n- As restrições são **OBRIGATÓRIAS** — sempre pergunte mesmo que o cliente não tenha nenhuma\n\n# REGRAS DO CAMPO \"dados\"\n- `nome`: texto com o nome completo informado pelo usuário\n- `idade`: número inteiro (apenas o número, sem \"anos\")\n- `peso`: número decimal (apenas o número, sem \"kg\"). Se o usuário digitar com vírgula (ex: \"86,5\"), converta para ponto (86.5)\n- `altura`: número decimal (apenas o número, sem \"m\"). Se o usuário digitar com vírgula (ex: \"1,63\"), converta para ponto (1.63)\n- `restricoes`: array de strings com as restrições informadas, em minúsculas e sem acento (ex: [\"gluten\", \"lactose\"]). Se o usuário disser que não tem restrições, retorne []\n\n\n# FORMATO DE RESPOSTA — OBRIGATÓRIO:\nResponda SEMPRE e APENAS em JSON válido, sem markdown, sem backticks, sem texto fora do JSON, exatamente neste formato:\n\n{\"mensagem\": \"texto da pergunta ou confirmação\", \"status\": false, \"dados\": {\"nome\": \"\", \"idade\": 0, \"peso\": 0, \"altura\": 0, \"restricoes\": []}}\n\n- nome: texto com o nome informado\n- idade: número inteiro\n- peso: número decimal (sem \"kg\")\n- altura: número decimal (sem \"m\")\n- restricoes: array de strings, ex: [\"gluten\", \"lactose\"], ou [] se nenhuma"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        992,
+        496
+      ],
+      "id": "fb42fe91-a0df-4cc9-816f-16d5e3318a64",
+      "name": "AI Agent1",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Edit Fields').item.json.sessionId }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryRedisChat",
+      "typeVersion": 1.6,
+      "position": [
+        1056,
+        688
+      ],
+      "id": "06316fba-1dec-4507-b21a-eb5687ec04a4",
+      "name": "Redis Chat Memory",
+      "credentials": {
+        "redis": {
+          "id": "sdTzQ0tYm2HLiBSz",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "e763bbca-cd46-4e13-aa7d-62523e7e7c9e",
+              "name": "sessionId",
+              "value": "={{$json.message.chat.id.toString()}}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {
+          "dotNotation": false
+        }
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -32,
+        144
+      ],
+      "id": "0e7bc8db-0d41-4e6b-94fb-355ba5e714e2",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "f487667b-9335-4a03-877b-f23087b6f522",
+              "leftValue": "={{ $json.status }}",
+              "rightValue": "true",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1568,
+        496
+      ],
+      "id": "6fd248f7-eba6-441b-97f9-cfa117033dcc",
+      "name": "If2"
+    },
+    {
+      "parameters": {
+        "tableId": "Clientes",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "chat_id",
+              "fieldValue": "={{ $('Telegram Trigger').item.json.message.chat.id }}"
+            },
+            {
+              "fieldId": "nome",
+              "fieldValue": "={{ $('Code in JavaScript2').item.json.dados.nome }}"
+            },
+            {
+              "fieldId": "idade",
+              "fieldValue": "={{ $('Code in JavaScript2').item.json.dados.idade }}"
+            },
+            {
+              "fieldId": "peso",
+              "fieldValue": "={{ $('Code in JavaScript2').item.json.dados.peso }}"
+            },
+            {
+              "fieldId": "altura",
+              "fieldValue": "={{ $('Code in JavaScript2').item.json.dados.altura }}"
+            },
+            {
+              "fieldId": "status",
+              "fieldValue": "ativo"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        1872,
+        368
+      ],
+      "id": "71345c0f-6b6f-40a9-9334-e7bcadfbf8f0",
+      "name": "Create a row",
+      "credentials": {
+        "supabaseApi": {
+          "id": "dcW8Sw9EJwXxmgli",
+          "name": "Supabase account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "restricoes",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        2448,
+        368
+      ],
+      "id": "a66afd3d-4867-460c-a7ef-6b4e1d294243",
+      "name": "Split Out1"
+    },
+    {
+      "parameters": {
+        "tableId": "Restricoes",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "cliente_id",
+              "fieldValue": "={{ $('Create a row').item.json.id }}"
+            },
+            {
+              "fieldId": "tipo",
+              "fieldValue": "={{ $json.restricoes }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        2640,
+        368
+      ],
+      "id": "90bcd9f4-a3a2-4bf7-8313-4726bbcb0d65",
+      "name": "Create a row2",
+      "credentials": {
+        "supabaseApi": {
+          "id": "dcW8Sw9EJwXxmgli",
+          "name": "Supabase account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "✅ Cadastro realizado com sucesso! \nBem-vindo(a) à clínica!\n\nO que deseja fazer hoje?\n\n1️⃣ Agendar consulta\n\n2️⃣ Receber receita personalizada",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        3104,
+        368
+      ],
+      "id": "ae4f6d0f-b0b6-485c-9c9f-94d771377e8f",
+      "name": "Send a text message3",
+      "webhookId": "7bc03047-2f8d-42ac-a139-cc42e95683c0",
+      "credentials": {
+        "telegramApi": {
+          "id": "GEIiceroyO0TPJr8",
+          "name": "Telegram account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "={{ $json.mensagem }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1840,
+        592
+      ],
+      "id": "94b6818a-0437-41d8-a8d8-4f928013b771",
+      "name": "Send a text message4",
+      "webhookId": "e487c774-7537-42f8-94e6-aea5ce6ae336",
+      "credentials": {
+        "telegramApi": {
+          "id": "GEIiceroyO0TPJr8",
+          "name": "Telegram account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const restricoes = $('Code in JavaScript2').item.json.dados.restricoes;\nreturn [{ json: { restricoes: restricoes } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2240,
+        368
+      ],
+      "id": "71510cc0-5bbc-4181-80d7-2c5a963e93e7",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        2864,
+        368
+      ],
+      "id": "1e257fe5-eeda-4a3b-9278-36885a7e8894",
+      "name": "Limit1"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.status }}",
+                    "rightValue": "aguardando_menu",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "9b8aa378-1e47-4290-bf99-daeccd08f152"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "menu"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "61d0dae4-a0b6-4051-9164-43614b40686f",
+                    "leftValue": "={{ $json.status }}",
+                    "rightValue": "aguardando_consulta",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "consulta"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "3ccf4b76-1383-4d64-ba3a-13f0fe851847",
+                    "leftValue": "={{ $json.status }}",
+                    "rightValue": "aguardando_pedido_receita",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "gerar_receita"
+            }
+          ]
+        },
+        "looseTypeValidation": true,
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        752,
+        -240
+      ],
+      "id": "522395a6-b74b-4ddf-8e0c-b07bce0dd716",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "Clientes",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "chat_id",
+              "condition": "eq",
+              "keyValue": "={{ $('Telegram Trigger').item.json.message.chat.id }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "status",
+              "fieldValue": "aguardando_menu"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        3328,
+        368
+      ],
+      "id": "8f355bec-9cbe-4467-9eba-68ce5906433a",
+      "name": "Update a row",
+      "credentials": {
+        "supabaseApi": {
+          "id": "dcW8Sw9EJwXxmgli",
+          "name": "Supabase account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Classifique a intenção do usuário em uma das opções: AGENDAR ou RECEITA.\n\nContexto do menu:\n1 = Agendar consulta\n2 = Receber receita\n\nMensagem do usuário: \"{{ $('Telegram Trigger').item.json.message.text }}\"\n\nSe o usuário digitou \"1\" ou mencionar agendar/consulta/marcar → AGENDAR\nSe o usuário digitou \"2\" ou mencionar receita/comida/comer → RECEITA\n\nResponda APENAS com a palavra AGENDAR ou RECEITA, sem explicação.",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        1232,
+        -816
+      ],
+      "id": "c2192305-a802-433d-b2fb-dff73ed99f8b",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.text }}",
+                    "rightValue": "AGENDAR",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "421dec91-7a72-4331-aa4a-fcac2dfbbb8e"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "agendar"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "f8823c6e-53ef-4db9-97bf-3c666746663c",
+                    "leftValue": "={{ $json.text }}",
+                    "rightValue": "RECEITA",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "receita"
+            }
+          ]
+        },
+        "looseTypeValidation": true,
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        1584,
+        -832
+      ],
+      "id": "422ce045-e1f4-4afb-8f71-c940465c7442",
+      "name": "Switch1"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "Clientes",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "chat_id",
+              "condition": "eq",
+              "keyValue": "={{ $('Telegram Trigger').item.json.message.chat.id }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "status",
+              "fieldValue": "aguardando_consulta"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        1904,
+        -1024
+      ],
+      "id": "98a7ed94-00dc-42d0-b742-cb03b63456fc",
+      "name": "Update a row1",
+      "credentials": {
+        "supabaseApi": {
+          "id": "dcW8Sw9EJwXxmgli",
+          "name": "Supabase account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "Agenda_disponivel",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "ocupado",
+              "condition": "eq",
+              "keyValue": "false"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        2112,
+        -1024
+      ],
+      "id": "1bb1e4f1-2e31-44db-9728-4e0dec7e7dd0",
+      "name": "Get many rows",
+      "credentials": {
+        "supabaseApi": {
+          "id": "dcW8Sw9EJwXxmgli",
+          "name": "Supabase account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const slots = $input.all();\nlet mensagem = \"📅 Horários disponíveis:\\n\\n\";\n\nslots.forEach((slot, index) => {\n  const dataHora = new Date(slot.json.data_hora);\n  const data = dataHora.toLocaleDateString('pt-BR');\n  const hora = dataHora.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});\n  mensagem += `${index + 1}️⃣ ${data} às ${hora}\\n`;\n});\n\nmensagem += \"\\nDigite o número do horário desejado.\";\n\nreturn [{ json: { mensagem } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2320,
+        -1024
+      ],
+      "id": "ef4231ca-9646-4560-9b00-ebb4ec66e74a",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "={{ $json.mensagem }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2528,
+        -1024
+      ],
+      "id": "0c39a574-0880-4920-aa1c-0f47590d8381",
+      "name": "Send a text message1",
+      "webhookId": "085621de-fd09-467b-ba80-a0a6d619d236",
+      "credentials": {
+        "telegramApi": {
+          "id": "GEIiceroyO0TPJr8",
+          "name": "Telegram account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        912,
+        672
+      ],
+      "id": "5e60e7a4-e2b2-4abe-997a-b89fed3ab937",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "lGiARkIyQcSrqg4W",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        1232,
+        -640
+      ],
+      "id": "096eafbd-5a51-43da-ad9d-38659e566a5b",
+      "name": "OpenAI Chat Model1",
+      "credentials": {
+        "openAiApi": {
+          "id": "lGiARkIyQcSrqg4W",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const output = JSON.parse($input.first().json.output);\nreturn [{ json: output }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1344,
+        496
+      ],
+      "id": "4fab0290-ea6b-4863-9a59-1716343bd0f4",
+      "name": "Code in JavaScript2"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "Agenda_disponivel",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "ocupado",
+              "condition": "eq",
+              "keyValue": "false"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        1248,
+        -464
+      ],
+      "id": "96c5a961-0b9d-4def-83e0-414e97cb230d",
+      "name": "Get many rows1",
+      "credentials": {
+        "supabaseApi": {
+          "id": "dcW8Sw9EJwXxmgli",
+          "name": "Supabase account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const slots = $input.all();\nconst escolha = parseInt($('Telegram Trigger').item.json.message.text.trim());\nconst slotEscolhido = slots[escolha - 1];\n\nreturn [{ json: { slot_id: slotEscolhido.json.id, data_hora: slotEscolhido.json.data_hora } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1456,
+        -464
+      ],
+      "id": "44ef92a1-53a0-46d0-a2ce-c740023ed466",
+      "name": "Code in JavaScript3"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "Agenda_disponivel",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id",
+              "condition": "eq",
+              "keyValue": "={{ $json.slot_id }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "ocupado",
+              "fieldValue": "true"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        1664,
+        -464
+      ],
+      "id": "aeba8c55-9f8a-42a3-bf16-a4ed65e6618d",
+      "name": "Update a row2",
+      "credentials": {
+        "supabaseApi": {
+          "id": "dcW8Sw9EJwXxmgli",
+          "name": "Supabase account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "tableId": "Consultas",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "cliente_id",
+              "fieldValue": "={{ $('Get a row').item.json.id }}"
+            },
+            {
+              "fieldId": "slot_id",
+              "fieldValue": "={{ $('Code in JavaScript3').item.json.slot_id }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        1872,
+        -464
+      ],
+      "id": "bc95fe79-048f-4aa3-85bd-6e720a3ffeb8",
+      "name": "Create a row1",
+      "credentials": {
+        "supabaseApi": {
+          "id": "dcW8Sw9EJwXxmgli",
+          "name": "Supabase account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "Clientes",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "chat_id",
+              "condition": "eq",
+              "keyValue": "={{ $('Telegram Trigger').item.json.message.chat.id }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "status",
+              "fieldValue": "ativo"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        2080,
+        -464
+      ],
+      "id": "0dda73e8-d398-4cb3-b7a2-804817ba322a",
+      "name": "Update a row3",
+      "credentials": {
+        "supabaseApi": {
+          "id": "dcW8Sw9EJwXxmgli",
+          "name": "Supabase account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "=✅ Consulta agendada com sucesso!\n\nData: {{ $('Code in JavaScript3').item.json.data_hora }}\n\nAté breve!",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2288,
+        -464
+      ],
+      "id": "a03d2cfd-8832-47d7-bce7-592b3147f373",
+      "name": "Send a text message",
+      "webhookId": "70d74141-0a04-4845-b2c9-a9b6a06c2660",
+      "credentials": {
+        "telegramApi": {
+          "id": "GEIiceroyO0TPJr8",
+          "name": "Telegram account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "Bem vindo(a) de volta !\n\nO que deseja fazer hoje?\n\n1️⃣ Agendar consulta\n\n2️⃣ Receber receita personalizada",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1056,
+        128
+      ],
+      "id": "d7879688-b0f6-4ddd-b48b-500ccc6b80f7",
+      "name": "Send a text message2",
+      "webhookId": "62f70690-b0f8-4eac-9ee8-9342d9acec92",
+      "credentials": {
+        "telegramApi": {
+          "id": "GEIiceroyO0TPJr8",
+          "name": "Telegram account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "Clientes",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "chat_id",
+              "condition": "eq",
+              "keyValue": "={{ $('Telegram Trigger').item.json.message.chat.id }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "status",
+              "fieldValue": "aguardando_menu"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        1264,
+        128
+      ],
+      "id": "c20d6869-20ec-44a9-af7c-62a951c7d2bb",
+      "name": "Update a row4",
+      "credentials": {
+        "supabaseApi": {
+          "id": "dcW8Sw9EJwXxmgli",
+          "name": "Supabase account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "Restricoes",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "cliente_id",
+              "condition": "eq",
+              "keyValue": "={{ $('Get a row').item.json.id }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        1104,
+        -192
+      ],
+      "id": "76fcec13-1e5b-4b6f-84fa-417d2da6e520",
+      "name": "Get many rows2",
+      "credentials": {
+        "supabaseApi": {
+          "id": "dcW8Sw9EJwXxmgli",
+          "name": "Supabase account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const restricoes = $input.all().map(item => item.json.tipo);\nconst restricoesTexto = restricoes.length > 0 ? restricoes.join(\", \") : \"nenhuma\";\n\nreturn [{ json: { restricoes: restricoesTexto } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1296,
+        -192
+      ],
+      "id": "8da86f41-595d-4f85-98a6-ac6b19d0b1f6",
+      "name": "Code in JavaScript4"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "responses": {
+          "values": [
+            {
+              "content": "=O cliente pediu: \"{{ $('Telegram Trigger').item.json.message.text }}\"\n\nRestrições alimentares do cliente: {{ $json.restricoes }}\n\nCrie uma receita que atenda ao pedido do cliente, SEM usar nenhum ingrediente das restrições ou seus derivados. Se o pedido for incompatível, sugira uma alternativa similar sem o ingrediente restrito.\n\n*A receita deve ser simples e facil*\n\n#Retorne no formato:\n🍽️ Nome da receita\n\n\nIngredientes:\n- ...\n\nModo de preparo:\n1. ..."
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.3,
+      "position": [
+        1504,
+        -192
+      ],
+      "id": "bce435b2-0080-4c57-978d-54dd04937456",
+      "name": "Message a model",
+      "credentials": {
+        "openAiApi": {
+          "id": "lGiARkIyQcSrqg4W",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "Clientes",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "chat_id",
+              "condition": "eq",
+              "keyValue": "={{ $('Telegram Trigger').item.json.message.chat.id }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "status",
+              "fieldValue": "aguardando_pedido_receita"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        1904,
+        -816
+      ],
+      "id": "cb59e0ed-f6b1-41b0-ad8f-c971ac6872f6",
+      "name": "Update a row5",
+      "credentials": {
+        "supabaseApi": {
+          "id": "dcW8Sw9EJwXxmgli",
+          "name": "Supabase account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "Qual receita deseja saber ? \n\nVou preparar uma receita considerando suas restrições alimentares! 😊",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2112,
+        -816
+      ],
+      "id": "428f2911-4a81-4972-b6a9-3760e2b84d90",
+      "name": "Send a text message5",
+      "webhookId": "d612c1ac-1733-48c7-9010-40cc47efa415",
+      "credentials": {
+        "telegramApi": {
+          "id": "GEIiceroyO0TPJr8",
+          "name": "Telegram account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "={{ $json.output[0].content[0].text }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1856,
+        -192
+      ],
+      "id": "6fe10ca8-6235-4e1e-a8fa-a25214406f72",
+      "name": "Send a text message6",
+      "webhookId": "0bb4d56a-9181-4318-9be1-c99dc964e350",
+      "credentials": {
+        "telegramApi": {
+          "id": "GEIiceroyO0TPJr8",
+          "name": "Telegram account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "Clientes",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "chat_id",
+              "condition": "eq",
+              "keyValue": "={{ $('Telegram Trigger').item.json.message.chat.id }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "status",
+              "fieldValue": "ativo"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        2064,
+        -192
+      ],
+      "id": "d6f8cb76-2420-463e-b2fe-84607a3771f1",
+      "name": "Update a row6",
+      "credentials": {
+        "supabaseApi": {
+          "id": "dcW8Sw9EJwXxmgli",
+          "name": "Supabase account 2"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a row": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Agent1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent1": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis Chat Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Get a row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If2": {
+      "main": [
+        [
+          {
+            "node": "Create a row",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a text message4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a row": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out1": {
+      "main": [
+        [
+          {
+            "node": "Create a row2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a row2": {
+      "main": [
+        [
+          {
+            "node": "Limit1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "Split Out1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit1": {
+      "main": [
+        [
+          {
+            "node": "Send a text message3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a text message3": {
+      "main": [
+        [
+          {
+            "node": "Update a row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get many rows1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get many rows2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a text message2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Switch1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch1": {
+      "main": [
+        [
+          {
+            "node": "Update a row1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Update a row5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update a row1": {
+      "main": [
+        [
+          {
+            "node": "Get many rows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many rows": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Send a text message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript2": {
+      "main": [
+        [
+          {
+            "node": "If2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many rows1": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript3": {
+      "main": [
+        [
+          {
+            "node": "Update a row2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update a row2": {
+      "main": [
+        [
+          {
+            "node": "Create a row1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a row1": {
+      "main": [
+        [
+          {
+            "node": "Update a row3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update a row3": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a text message2": {
+      "main": [
+        [
+          {
+            "node": "Update a row4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many rows2": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript4": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update a row5": {
+      "main": [
+        [
+          {
+            "node": "Send a text message5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Send a text message6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a text message6": {
+      "main": [
+        [
+          {
+            "node": "Update a row6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "d1773a60-c4e8-44cc-ac08-c70d790e68f7",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": ""
+  },
+  "id": "qDy3wHEwHdTMhJLJ",
+  "tags": []
+}

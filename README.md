@@ -2,6 +2,35 @@
 
 Assistente virtual de nutrição via Telegram, construído com n8n. Gerencia cadastro de clientes, agendamento de consultas e geração de receitas personalizadas com IA.
 
+---
+
+## 📸 Preview
+
+### Workflow no n8n
+<img src="docs/workflow-preview.png" width="700"/>
+
+### Bot em funcionamento no Telegram
+
+**Cadastro**
+
+<img src="docs/telegram-cadastro1.png" width="350"/>
+<br/><br/>
+<img src="docs/telegram-cadastro2.png" width="350"/>
+
+<br/>
+
+**Consulta**
+
+<img src="docs/telegram-consulta.png" width="350"/>
+
+<br/>
+
+**Receita**
+
+<img src="docs/telegram-receita.png" width="350"/>
+
+---
+
 ## 🛠️ Stack
 
 | Tecnologia | Uso |
@@ -15,38 +44,32 @@ Assistente virtual de nutrição via Telegram, construído com n8n. Gerencia cad
 ---
 
 ## 🔄 Fluxo Geral
+
+```
 Telegram Trigger
-
-└── Edit Fields
-
-└── Get Row (Supabase) → verifica se cliente existe
-
-├── [NÃO CADASTRADO] → Fluxo de Cadastro
-
-└── [CADASTRADO] → Switch de Intenções
+    └── Edit Fields
+        └── Get Row (Supabase) → verifica se cliente existe
+            ├── [NÃO CADASTRADO] → Fluxo de Cadastro
+            └── [CADASTRADO] → Switch de Intenções
+```
 
 ---
 
 ## 📋 Fluxo de Cadastro (cliente novo)
 
 O agente coleta os dados do cliente via conversa natural com memória de sessão.
+
+```
 AI Agent (OpenAI + Redis)
-
-└── Code JS → valida dados coletados
-
-└── If cadastro completo?
-
-├── [SIM] → Create Row (Supabase)
-
-│           └── Code JS → Split Out
-
-│               └── Create Row 2 → Limit
-
-│                   └── Send Message → "Cadastro concluído!"
-
-│                       └── Update Row (Supabase)
-
-└── [NÃO] → Send Message → solicita dados faltantes
+    └── Code JS → valida dados coletados
+        └── If cadastro completo?
+            ├── [SIM] → Create Row (Supabase)
+            │           └── Code JS → Split Out
+            │               └── Create Row 2 → Limit
+            │                   └── Send Message → "Cadastro concluído!"
+            │                       └── Update Row (Supabase)
+            └── [NÃO] → Send Message → solicita dados faltantes
+```
 
 ---
 
@@ -65,50 +88,48 @@ O LLM classifica a mensagem do cliente e direciona para o fluxo correto.
 ---
 
 ## 📅 Agendamento de Consulta
+
+```
 Basic LLM Chain (OpenAI) → classifica intenção "agenda"
-
-└── Update Row (Supabase) → registra intenção
-
-└── Create Many Rows (Supabase) → salva horários
-
-└── Code JS
-
-└── Send Message → confirmação ao cliente
+    └── Update Row (Supabase) → registra intenção
+        └── Create Many Rows (Supabase) → salva horários
+            └── Code JS
+                └── Send Message → confirmação ao cliente
+```
 
 ---
 
 ## 🍽️ Solicitação de Receita (menu)
+
+```
 Basic LLM Chain (OpenAI) → classifica intenção "receita"
-
-└── Update Row 5 (Supabase)
-
-└── Send Message → pergunta qual receita o cliente deseja
+    └── Update Row 5 (Supabase)
+        └── Send Message → pergunta qual receita o cliente deseja
+```
 
 ---
 
 ## 📂 Consulta de Histórico
+
+```
 Get Many Rows (Supabase) → busca consultas do cliente
-
-└── Code JS
-
-└── Update Row 2 → Update Row 3 (Supabase)
-
-└── Create Row 1 (Supabase)
-
-└── Send Message → exibe histórico de consultas
+    └── Code JS
+        └── Update Row 2 → Update Row 3 (Supabase)
+            └── Create Row 1 (Supabase)
+                └── Send Message → exibe histórico de consultas
+```
 
 ---
 
 ## 🤖 Geração de Receita Personalizada
+
+```
 Get Many Rows 2 (Supabase) → busca perfil e histórico
-
-└── Code JS
-
-└── Message a Model (OpenAI) → gera receita com base no perfil
-
-└── Send Message → envia receita ao cliente
-
-└── Update Row 6 (Supabase) → registra receita gerada
+    └── Code JS
+        └── Message a Model (OpenAI) → gera receita com base no perfil
+            └── Send Message → envia receita ao cliente
+                └── Update Row 6 (Supabase) → registra receita gerada
+```
 
 ---
 
@@ -129,6 +150,7 @@ Get Many Rows 2 (Supabase) → busca perfil e histórico
 | `clientes` | Dados cadastrais dos usuários |
 | `consultas` | Agendamentos e histórico |
 | `receitas` | Receitas geradas pela IA |
+| `agenda_disponivel` | Horários disponíveis para consulta |
 
 ---
 
